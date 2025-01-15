@@ -1,4 +1,3 @@
-import { desc } from "drizzle-orm";
 import {
   integer,
   varchar,
@@ -9,7 +8,7 @@ import {
   timestamp,
   jsonb,
   boolean,
-  float,
+  real,
 } from "drizzle-orm/pg-core";
 
 // Define the schema for the users table
@@ -41,8 +40,8 @@ export const Reports = pgTable("reports", {
   created_at: timestamp("created_at").defaultNow().notNull(),
   collectorId: integer("collector_id").references(() => Users.id),
 
-  latitude: float("latitude"),
-  longitude: float("longitude"),
+  latitude: real("latitude"),
+  longitude: real("longitude"),
 });
 
 // Define the schema for the rewards table
