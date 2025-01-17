@@ -94,3 +94,16 @@ export async function getRewardTransactions(userId: number) {
     return null;
   }
 }
+
+// Create a new notification for a given user
+export async function markNotificationAsRead(notificationId: number) {
+  try {
+    await db
+      .update(Notifications)
+      .set({ isRead: true })
+      .where(eq(Notifications.id, notificationId))
+      .execute();
+  } catch (error) {
+    console.error("Error marking notification as read:", error);
+  }
+}
