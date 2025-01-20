@@ -32,16 +32,12 @@ export const Reports = pgTable("reports", {
   materialType: varchar("material_type", { length: 255 }).notNull(),
   temperature: integer("temperature").notNull(),
   imageUrl: text("image_url"),
-  date: date("date").notNull(),
-  weather: jsonb("weather").notNull(),
+  weather: jsonb("weather"),
   verificationResult: jsonb("verification_result"),
   notes: text("notes"),
   status: varchar("status", { length: 255 }).notNull(),
   created_at: timestamp("created_at").defaultNow().notNull(),
   collectorId: integer("collector_id").references(() => Users.id),
-
-  latitude: real("latitude"),
-  longitude: real("longitude"),
 });
 
 // Define the schema for the rewards table

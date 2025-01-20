@@ -1,6 +1,7 @@
 import { db } from "./dbConfig";
-import { Notifications, Users, Transactions } from "./schema";
+import { Notifications, Users, Transactions, Reports, Rewards } from "./schema";
 import { eq, sql, and, desc } from "drizzle-orm";
+import axios from "axios";
 
 // Create a new user in the database with the given email and name
 export async function createUser(email: string, name: string) {
@@ -66,7 +67,7 @@ export async function getUserBalance(userId: number): Promise<number> {
   return Math.max(balance, 0);
 }
 
-// Get all reward transactions for a given user
+// Get the reward transactions for a given user
 export async function getRewardTransactions(userId: number) {
   try {
     const transactions = await db
@@ -95,7 +96,7 @@ export async function getRewardTransactions(userId: number) {
   }
 }
 
-// Create a new notification for a given user
+// Mark a notification as read in the database
 export async function markNotificationAsRead(notificationId: number) {
   try {
     await db
@@ -105,5 +106,157 @@ export async function markNotificationAsRead(notificationId: number) {
       .execute();
   } catch (error) {
     console.error("Error marking notification as read:", error);
+  }
+}
+
+// Create a new report in the database
+export async function createReport(
+  userId: number,
+  location: string,
+  materialType: string,
+  temperature: number,
+  weather: any, // Adjust the type if you have a specific schema for weather
+  imageUrl?: string,
+  verificationResult?: any
+) {
+  try {
+    const [report] = await db
+      .insert(Reports)
+      .values({
+        user_id: userId, // Corrected the field name to match database schema
+        location,
+        materialType,
+        temperature,
+        weather,
+
+        imageUrl,
+        verificationResult,
+        status: "pending", // Assuming status is always "pending" when created
+      })
+      .returning()
+      .execute();
+
+    const pointsEarned = 10; // Assuming 10 points are earned for each report
+    //UpdateRewardPoints
+    await updateRewardPoints(userId, pointsEarned);
+    //createTransaction
+    await createTransaction(
+      userId,
+      "earned_report",
+      pointsEarned,
+      "Earned points for creating a report"
+    );
+    //createNotification
+    await createNotification(
+      userId,
+      ` You have earned ${pointsEarned} points for creating a new report`,
+      "reward"
+    );
+  } catch (error) {
+    console.error("Error creating report:", error);
+    return null; // Return null in case of an error
+  }
+}
+// update reward points for a given user
+export async function updateRewardPoints(userId: number, pointsToAdd: number) {
+  try {
+    const [updatedReward] = await db
+      .update(Rewards)
+      .set({
+        points: sql`${Rewards.points} + ${pointsToAdd}`,
+      })
+      .where(eq(Rewards.user_id, userId))
+      .returning()
+      .execute();
+  } catch (error) {
+    console.log("Error updating reward points:", error);
+    return null;
+  }
+}
+
+// Create a new transaction in the database
+export async function createTransaction(
+  userId: number,
+  type: "earned_report" | "earn_collect" | "redeemed",
+  amount: number,
+  description: string
+) {
+  try {
+    const [transaction] = await db
+      .insert(Transactions)
+      .values({
+        userId,
+        type,
+        amount,
+        description,
+      })
+      .returning()
+      .execute();
+    return transaction;
+  } catch (error) {
+    console.error("Error creating transaction:", error);
+    throw error;
+  }
+}
+
+// Create a new notification in the database
+export async function createNotification(
+  userId: number,
+  message: string,
+  type: string
+) {
+  try {
+    const [notification] = await db
+      .insert(Notifications)
+      .values({
+        userId,
+        message,
+        type,
+      })
+      .returning()
+      .execute();
+    return notification;
+  } catch (error) {
+    console.error("Error creating notification:", error);
+    return null;
+  }
+}
+
+// Get the current weather for a given location
+const openWeatherApiKey = process.env.OPEN_WEATHER_API_KEY;
+
+export async function getWeather(location: string): Promise<number | null> {
+  try {
+    const response = await axios.get(
+      `https://api.openweathermap.org/data/2.5/weather`,
+      {
+        params: {
+          q: location, // Şehir ismi
+          units: "metric", // Celsius için metric birim
+          appid: openWeatherApiKey, // OpenWeather API anahtarınız
+        },
+      }
+    );
+
+    // API yanıtından sıcaklığı döndür
+    return response.data.main.temp; // Sıcaklık (Celsius)
+  } catch (error) {
+    console.error("Error fetching weather data:", error);
+    return null; // Hata durumunda null döner
+  }
+}
+
+// Get the recent reports from the database
+export async function getRecentReports(limit: number = 10) {
+  try {
+    const reports = await db
+      .select()
+      .from(Reports)
+      .orderBy(desc(Reports.created_at))
+      .limit(limit)
+      .execute();
+  } catch (error) {
+    console.error("Error getting recent reports:", error);
+    return [];
   }
 }
