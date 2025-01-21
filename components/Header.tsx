@@ -37,6 +37,8 @@ import {
   markNotificationAsRead,
 } from "@/utils/db/actions";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import Image from "next/image";
+import kids from "@/public/image/kids.webp";
 
 //import {useMediaQuery} from '@'
 
@@ -157,6 +159,10 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
       return;
     }
     try {
+      if (!web3Auth.initModal) {
+        console.error("Login modal is not initialized");
+        return;
+      }
       const web3authProvider = await web3Auth.connect();
       setProvider(web3authProvider);
       setLoggedIn(true);
@@ -229,7 +235,10 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
             <Menu className="h-6 w-6 text-gray-800" />
           </Button>
           <Link href="/" className="flex items-center">
-            <Leaf className="h-6 w-6 md:h-8 md:w-8 text-green-500 mr-1 md:mr-2" />
+            <Image
+              src={kids}
+              className="h-6 w-6 md:h-8 md:w-8 text-green-500 mr-1 md:mr-2 rounded-full"
+            />
             <span className="font-bold text-base md:text-lg text-gray-800">
               HeatWatchers
             </span>

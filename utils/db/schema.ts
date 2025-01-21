@@ -27,10 +27,10 @@ export const Reports = pgTable("reports", {
   id: serial("id").primaryKey(),
   user_id: integer("user_id")
     .references(() => Users.id)
-    .notNull(), // references the id column in the users table
+    .notNull(),
   location: text("location").notNull(),
   materialType: varchar("material_type", { length: 255 }).notNull(),
-  temperature: integer("temperature").notNull(),
+  temperature: real("temperature").notNull(), // Real tipi kullandım
   imageUrl: text("image_url"),
   weather: jsonb("weather"),
   verificationResult: jsonb("verification_result"),

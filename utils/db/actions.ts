@@ -2,10 +2,16 @@ import { db } from "./dbConfig";
 import { Notifications, Users, Transactions, Reports, Rewards } from "./schema";
 import { eq, sql, and, desc } from "drizzle-orm";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 // Create a new user in the database with the given email and name
 export async function createUser(email: string, name: string) {
   try {
+    const existingUser = await getUserByEmail(email);
+    if (existingUser) {
+      toast.error("User already exists with this email");
+      return existingUser;
+    }
     const [user] = await db
       .insert(Users)
       .values({
@@ -30,6 +36,12 @@ export async function getUserByEmail(email: string) {
       .from(Users)
       .where(eq(Users.email, email))
       .execute();
+
+    if (!user) {
+      console.error("No user found with the provided email.");
+      return null;
+    }
+
     return user;
   } catch (error) {
     console.error("Error getting user by email:", error);
@@ -152,6 +164,7 @@ export async function createReport(
       ` You have earned ${pointsEarned} points for creating a new report`,
       "reward"
     );
+    return report;
   } catch (error) {
     console.error("Error creating report:", error);
     return null; // Return null in case of an error
@@ -168,6 +181,7 @@ export async function updateRewardPoints(userId: number, pointsToAdd: number) {
       .where(eq(Rewards.user_id, userId))
       .returning()
       .execute();
+    return updatedReward;
   } catch (error) {
     console.log("Error updating reward points:", error);
     return null;
@@ -223,7 +237,8 @@ export async function createNotification(
 }
 
 // Get the current weather for a given location
-const openWeatherApiKey = process.env.OPEN_WEATHER_API_KEY;
+
+const openWeatherApiKey = process.env.NEXT_PUBLIC_OPEN_WEATHER_API_KEY;
 
 export async function getWeather(location: string): Promise<number | null> {
   try {
@@ -231,22 +246,22 @@ export async function getWeather(location: string): Promise<number | null> {
       `https://api.openweathermap.org/data/2.5/weather`,
       {
         params: {
-          q: location, // Şehir ismi
-          units: "metric", // Celsius için metric birim
-          appid: openWeatherApiKey, // OpenWeather API anahtarınız
+          q: location,
+          units: "metric",
+          appid: openWeatherApiKey,
         },
       }
     );
-
-    // API yanıtından sıcaklığı döndür
-    return response.data.main.temp; // Sıcaklık (Celsius)
-  } catch (error) {
-    console.error("Error fetching weather data:", error);
-    return null; // Hata durumunda null döner
+    return response.data.main.temp;
+  } catch (error: any) {
+    console.error(
+      "Error fetching weather data:",
+      error.response?.data || error.message
+    );
+    return null;
   }
 }
 
-// Get the recent reports from the database
 export async function getRecentReports(limit: number = 10) {
   try {
     const reports = await db
@@ -255,6 +270,7 @@ export async function getRecentReports(limit: number = 10) {
       .orderBy(desc(Reports.created_at))
       .limit(limit)
       .execute();
+    return reports;
   } catch (error) {
     console.error("Error getting recent reports:", error);
     return [];
