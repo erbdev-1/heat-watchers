@@ -13,7 +13,7 @@ import {
 const sidebarItems = [
   { label: "Home", icon: Home, href: "/" },
   { label: "Report Temperature", icon: MapPin, href: "/report" },
-  { label: "Verify", icon: ShieldCheck, href: "/verify" },
+  { label: "Verify Report", icon: ShieldCheck, href: "/verify" },
   { label: "Rewards", icon: Coins, href: "/rewards" },
   { label: "Leaderboard", icon: Medal, href: "/leaderboard" },
 ];

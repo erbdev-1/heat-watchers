@@ -1,5 +1,12 @@
 import { db } from "./dbConfig";
-import { Notifications, Users, Transactions, Reports, Rewards } from "./schema";
+import {
+  Notifications,
+  Users,
+  Transactions,
+  Reports,
+  Rewards,
+  VerifiedReports,
+} from "./schema";
 import { eq, sql, and, desc } from "drizzle-orm";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -319,5 +326,111 @@ export async function getAvailableRewards(userId: number) {
   } catch (error) {
     console.error("Error getting available rewards:", error);
     return [];
+  }
+}
+
+// Redeem a reward for a given user by deducting the points from their balance
+export async function getVerifyTasks(limit: number = 20) {
+  try {
+    const tasks = await db
+      .select({
+        id: Reports.id,
+        location: Reports.location,
+        materialType: Reports.materialType,
+        temperature: Reports.temperature,
+        weather: Reports.weather,
+        status: Reports.status,
+        date: Reports.created_at,
+        collectorId: Reports.collectorId,
+      })
+      .from(Reports)
+      .limit(limit)
+      .execute();
+
+    // Format date as YYYY-MM-DD
+    return tasks.map((task) => ({
+      ...task,
+      date: task.date.toISOString().split("T")[0],
+    }));
+  } catch (error) {
+    console.error("Error getting verify tasks:", error);
+    return [];
+  }
+}
+
+// Redeem a reward for a given user by deducting the points from their balance
+export async function updateTaskStatus(
+  reportId: number,
+  newStatus: string,
+  collectorId: number
+) {
+  try {
+    const updateData: any = { status: newStatus };
+    if (collectorId) {
+      updateData.collectorId = collectorId;
+    }
+
+    const [UpdateReport] = await db
+      .update(Reports)
+      .set(updateData)
+      .where(eq(Reports.id, reportId))
+      .returning()
+      .execute();
+
+    return UpdateReport;
+  } catch (error) {
+    console.error("Error updating verify task status:", error);
+    return null;
+  }
+}
+
+// Save a reward for a given user
+export async function saveReward(user_id: number, amount: number) {
+  try {
+    const [reward] = await db
+      .insert(Rewards)
+      .values({
+        user_id,
+        name: "Temperature Report Reward",
+        verifyInfo: "Points earned from reporting temperature",
+        points: amount,
+        isAvailable: true,
+      })
+      .returning()
+      .execute();
+
+    await createTransaction(
+      user_id,
+      "earned_report",
+      amount,
+      "Earned points for collecting a report"
+    );
+  } catch (error) {
+    console.error("Error saving reward:", error);
+    throw error;
+  }
+}
+
+// Save a verified report in the database
+export async function saveVerifiedReport(
+  reportId: number,
+  collectorId: number,
+  verificationDate: any
+) {
+  try {
+    const [verifiedReport] = await db
+      .insert(VerifiedReports)
+      .values({
+        reportId,
+        verifierId: collectorId,
+        verificationDate,
+        status: "verified",
+      })
+      .returning()
+      .execute();
+    return verifiedReport;
+  } catch (error) {
+    console.error("Error saving verify report:", error);
+    return null;
   }
 }
