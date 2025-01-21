@@ -421,6 +421,7 @@ export default function ReportPage() {
         const recentReports = await getRecentReports();
         const formattedReports = recentReports?.map((report: any) => ({
           ...report,
+          objectType: report.materialType,
           created_at: new Date(report.created_at).toISOString().split("T")[0],
         }));
 
@@ -489,67 +490,6 @@ export default function ReportPage() {
         )}
 
         {/*VERIFICATION RESULT */}
-
-        {/* {verificationResult && (
-          <div
-            className={`p-4 mb-8 rounded-r-xl ${
-              verificationStatus === "success"
-                ? "bg-green-50 border-l-4 border-green-400"
-                : "bg-red-50 border-l-4 border-red-400"
-            }`}
-          >
-            <div className="flex items-center">
-              <CheckCircle
-                className={`h-6 w-6 mr-3 ${
-                  verificationStatus === "success"
-                    ? "text-green-400"
-                    : "text-red-400"
-                }`}
-              />
-              <div>
-                <h3
-                  className={`text-lg font-medium ${
-                    verificationStatus === "success"
-                      ? "text-green-800"
-                      : "text-red-800"
-                  }`}
-                >
-                  {verificationStatus === "success"
-                    ? "Verification Successful"
-                    : "Verification Failed"}
-                </h3>
-                <div
-                  className={`mt-2 text-sm ${
-                    verificationStatus === "success"
-                      ? "text-green-700"
-                      : "text-red-700"
-                  }`}
-                >
-                  <p>Temperature Type: {verificationResult.temperatureType}</p>
-                  <p>
-                    Expected Temperature Range:{" "}
-                    {verificationResult.expectedTemperatureRange}
-                  </p>
-                  <p>User Temperature: {newReport.temperature}°C</p>
-                  <p>
-                    Validation Result:{" "}
-                    {verificationResult.isWithinRange
-                      ? `User temperature (${newReport.temperature}°C) is within the expected range (${verificationResult.expectedTemperatureRange}).`
-                      : `User temperature (${newReport.temperature}°C) is outside the expected range (${verificationResult.expectedTemperatureRange}).`}
-                  </p>
-                  <p>
-                    Confidence:{" "}
-                    {(verificationResult.confidence * 100).toFixed(2)}%
-                  </p>
-                  <p>
-                    Object Type Match:{" "}
-                    {verificationResult.objectTypeMatch ? "Yes" : "No"}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )} */}
 
         {verificationResult && (
           <div className="p-4 mb-8 rounded-r-xl bg-green-50 border-l-4 border-green-400">
@@ -771,7 +711,7 @@ export default function ReportPage() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {report.objectType}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 flex justify-center items-center">
                       {report.temperature}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

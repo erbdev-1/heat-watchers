@@ -262,6 +262,7 @@ export async function getWeather(location: string): Promise<number | null> {
   }
 }
 
+// Get the recent reports from the database
 export async function getRecentReports(limit: number = 10) {
   try {
     const reports = await db
@@ -270,9 +271,53 @@ export async function getRecentReports(limit: number = 10) {
       .orderBy(desc(Reports.created_at))
       .limit(limit)
       .execute();
+
+    console.log("Fetched Reports:", reports);
     return reports;
   } catch (error) {
     console.error("Error getting recent reports:", error);
+    return [];
+  }
+}
+
+// Get the available rewards for a given user
+export async function getAvailableRewards(userId: number) {
+  try {
+    const userTransactions = await getRewardTransactions(userId);
+    const userPoints = userTransactions?.reduce(
+      (total: any, transaction: any) => {
+        return transaction.type.startsWith("earned")
+          ? total + transaction.amount
+          : total - transaction.amount;
+      },
+      0
+    );
+
+    const dbRewards = await db
+      .select({
+        id: Rewards.id,
+        name: Rewards.name,
+        points: Rewards.points,
+        description: Rewards.description,
+        verifyInfo: Rewards.verifyInfo,
+      })
+      .from(Rewards)
+      .where(eq(Rewards.user_id, userId))
+      .execute();
+
+    const AllrRewards = [
+      {
+        id: 0,
+        name: "Your Points",
+        cost: userPoints,
+        description: "Redeem your earned points",
+        verifyInfo: "Points earned from reporting temperature",
+      },
+      ...dbRewards,
+    ];
+    return AllrRewards;
+  } catch (error) {
+    console.error("Error getting available rewards:", error);
     return [];
   }
 }
