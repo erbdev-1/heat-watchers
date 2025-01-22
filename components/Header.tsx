@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 import { Button } from "./ui/button";
@@ -35,6 +36,7 @@ import {
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import Image from "next/image";
 import kids from "@/public/image/kids.webp";
+import toast from "react-hot-toast";
 
 //import {useMediaQuery} from '@'
 
@@ -96,6 +98,7 @@ export default function Header({
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [balance, setBalance] = useState<number>(0);
   const isMobile = useMediaQuery("(max-width: 768px)");
+  const router = useRouter();
 
   useEffect(() => {
     const init = async () => {
@@ -207,8 +210,13 @@ export default function Header({
       setLoggedIn(false);
       setUserInfo(null);
       localStorage.removeItem("userEmail");
+
+      toast.success("Logged out successfully");
+
+      router.push("/");
     } catch (error) {
       console.error("Error logging out:", error);
+      toast.error("Error logging out");
     }
   };
 

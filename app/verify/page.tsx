@@ -28,17 +28,12 @@ import {
 
 const geminiApiKey = process.env.GEMINI_API_KEY as string;
 
-type Weather = {
-  temperature: number;
-  humidity: number;
-};
-
 type VerifyTask = {
   id: number;
   location: string;
   materialType: string;
   temperature: number;
-  weather: Weather;
+  weather: number;
   status: "pending" | "in_progress" | "completed" | "verified";
   date: string;
   collectorId: number;
@@ -82,6 +77,7 @@ export default function VerifyPage() {
 
         // Fetch tasks
         const fetchedTasks = await getVerifyTasks();
+        console.log("Fetched tasks:", fetchedTasks);
         setTasks(fetchedTasks as VerifyTask[]);
       } catch (error) {
         console.error("Error fetching user and tasks:", error);
@@ -177,7 +173,7 @@ export default function VerifyPage() {
         You are an expert in material verification and temperature analysis. Please analyze the image and respond:
         
         1. Does the material in the image match the task's material type: "${selectedTask.materialType}"?
-        2. Based on the current weather temperature (${selectedTask.weather.temperature}°C), is the temperature within the expected range for this material?
+        2. Based on the current weather temperature (${selectedTask.weather}°C), is the temperature within the expected range for this material?
         3. Provide your confidence level in this assessment as a number between 0 and 1.
   
         Respond in JSON format like this:
@@ -335,7 +331,7 @@ export default function VerifyPage() {
                   </div>
                   <div className="flex items-center">
                     <Cloud className="w-4 h-4 mr-2 text-gray-500" />
-                    {task.weather.temperature}°C
+                    {task.weather ?? "N/A"}°C
                   </div>
                 </div>
                 <div className="flex justify-end">
@@ -472,7 +468,7 @@ export default function VerifyPage() {
                   Confidence: {(verificationResult.confidence * 100).toFixed(2)}
                   %
                 </p>
-                <p>Weather: {selectedTask.weather.temperature}°C</p>
+                <p>Weather: {selectedTask.weather}°C</p>
               </div>
             )}
             {verificationStatus === "failure" && (

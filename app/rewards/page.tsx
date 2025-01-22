@@ -219,7 +219,7 @@ export default function RewardsPage() {
             <Coins className="w-10 h-10 mr-3 text-green-500" />
             <div>
               <span className="text-4xl font-bold text-green-500">
-                {balance}
+                {balance} points
               </span>
               <p className="text-sm text-gray-500">Available Points</p>
             </div>
