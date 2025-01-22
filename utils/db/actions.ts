@@ -11,6 +11,14 @@ import { eq, sql, and, desc } from "drizzle-orm";
 import axios from "axios";
 import toast from "react-hot-toast";
 
+// Define RewardRow interface
+interface RewardRow {
+  user_id: number;
+  userName: string | null;
+  total_points: number;
+  level: number;
+}
+
 // Create a new user in the database with the given email and name
 export async function createUser(email: string, name: string) {
   try {
@@ -74,16 +82,14 @@ export async function getUnreadNotifications(userId: number) {
 // Get the balance for a given user by summing up all reward transactions
 
 export async function getUserBalance(userId: number): Promise<number> {
-  const transactions = await getRewardTransactions(userId);
-
-  if (!transactions) return 0;
+  const transactions = (await getRewardTransactions(userId)) ?? []; // Default to empty array if null
 
   const balance = transactions.reduce((acc: number, transaction: any) => {
     return transaction.type.startsWith("earned")
       ? acc + transaction.amount
       : acc - transaction.amount;
   }, 0);
-  return Math.max(balance, 0);
+  return Math.max(balance, 0); // Ensure balance is never negative
 }
 
 // Get the reward transactions for a given user
@@ -103,15 +109,15 @@ export async function getRewardTransactions(userId: number) {
       .limit(10)
       .execute();
 
-    const formattedTransactions = transactions.map((t) => ({
+    if (!transactions) return []; // Return empty array if no transactions
+
+    return transactions.map((t) => ({
       ...t,
       date: t.date.toISOString().split("T")[0], // Format date as YYYY-MM-DD
     }));
-
-    return formattedTransactions;
   } catch (error) {
-    console.log("Error getting reward transactions:", error);
-    return null;
+    console.error("Error getting reward transactions:", error);
+    return [];
   }
 }
 
@@ -432,5 +438,128 @@ export async function saveVerifiedReport(
   } catch (error) {
     console.error("Error saving verify report:", error);
     return null;
+  }
+}
+
+export async function getAllRewards() {
+  try {
+    const rewards: RewardRow[] = await db
+      .select({
+        user_id: Rewards.user_id,
+        userName: Users.name,
+        total_points: sql<number>`SUM(${Rewards.points})`.as("total_points"), // Use alias for sum
+        level: sql<number>`FLOOR(SUM(${Rewards.points}) / 100)`.as("level"), // Dynamically calculate level
+      })
+      .from(Rewards)
+      .leftJoin(Users, eq(Rewards.user_id, Users.id))
+      .groupBy(Rewards.user_id, Users.name) // Group by user_id and userName
+      .orderBy(desc(sql`SUM(${Rewards.points})`)) // Order by total_points
+      .execute();
+
+    return rewards.map((reward) => ({
+      userId: reward.user_id,
+      userName: reward.userName || "Unknown User",
+      points: reward.total_points, // Map total_points to points
+      level: reward.level, // Map level
+    }));
+  } catch (error) {
+    console.error("Error fetching all rewards:", error);
+    return [];
+  }
+}
+
+export async function getOrCreateReward(user_id: number) {
+  try {
+    let [reward] = await db
+      .select()
+      .from(Rewards)
+      .where(eq(Rewards.user_id, user_id))
+      .execute();
+
+    if (!reward) {
+      [reward] = await db
+        .insert(Rewards)
+        .values({
+          user_id,
+          name: "Default Reward",
+          verifyInfo: "Default Report Reward",
+          points: 0,
+          isAvailable: true,
+        })
+        .returning()
+        .execute();
+    }
+
+    return reward;
+  } catch (error) {
+    console.error("Error getting or creating reward:", error);
+    throw error;
+  }
+}
+
+export async function redeemReward(userId: number, rewardId: number) {
+  try {
+    const userReward = (await getOrCreateReward(userId)) as any;
+
+    if (rewardId === 0) {
+      // Redeem all points
+      const [updatedReward] = await db
+        .update(Rewards)
+        .set({
+          points: 0,
+          updatedAt: new Date(),
+        })
+        .where(eq(Rewards.user_id, userId))
+        .returning()
+        .execute();
+
+      // Create a transaction for this redemption
+      await createTransaction(
+        userId,
+        "redeemed",
+        userReward.points,
+        `Redeemed all points: ${userReward.points}`
+      );
+
+      return updatedReward;
+    } else {
+      // Existing logic for redeeming specific rewards
+      const availableReward = await db
+        .select()
+        .from(Rewards)
+        .where(eq(Rewards.id, rewardId))
+        .execute();
+
+      if (
+        !userReward ||
+        !availableReward[0] ||
+        userReward.points < availableReward[0].points
+      ) {
+        throw new Error("Insufficient points or invalid reward");
+      }
+
+      const [updatedReward] = await db
+        .update(Rewards)
+        .set({
+          points: sql`${Rewards.points} - ${availableReward[0].points}`,
+          updatedAt: new Date(),
+        })
+        .where(eq(Rewards.user_id, userId))
+        .returning()
+        .execute();
+
+      // Create a transaction for this redemption
+      await createTransaction(
+        userId,
+        "redeemed",
+        availableReward[0].points,
+        `Redeemed: ${availableReward[0].name}`
+      );
+
+      return updatedReward;
+    }
+  } catch (error) {
+    console.error("Error redeeming reward:", error);
+    throw error;
   }
 }

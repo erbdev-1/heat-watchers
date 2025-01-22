@@ -54,12 +54,19 @@ export default function RewardsPage() {
           const fetchedUser = await getUserByEmail(userEmail);
           if (fetchedUser) {
             setUser(fetchedUser);
-            const fetchedTransactions = await getRewardTransactions(
-              fetchedUser.id
-            );
+            const fetchedTransactions =
+              (await getRewardTransactions(fetchedUser.id)) ?? [];
             setTransactions(fetchedTransactions as Transaction[]);
             const fetchedRewards = await getAvailableRewards(fetchedUser.id);
-            setRewards(fetchedRewards.filter((r) => r.cost > 0)); // Filter out rewards with 0 points
+            setRewards(
+              fetchedRewards
+                .map((r) => ({
+                  ...r,
+                  cost: "points" in r ? r.points : r.cost,
+                  collectionInfo: r.verifyInfo || "",
+                }))
+                .filter((r) => r.cost > 0)
+            ); // Ensure all rewards have cost and collectionInfo
             const calculatedBalance = fetchedTransactions.reduce(
               (acc, transaction) => {
                 return transaction.type.startsWith("earned")
@@ -115,8 +122,12 @@ export default function RewardsPage() {
         await refreshUserData();
 
         toast.success(`You have successfully redeemed: ${reward.name}`);
-      } catch (error) {
-        console.error("Error redeeming reward:", error);
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          console.error("Error redeeming reward:", error.message);
+        } else {
+          console.error("Unknown error redeeming reward:", error);
+        }
         toast.error("Failed to redeem reward. Please try again.");
       }
     } else {
@@ -163,7 +174,15 @@ export default function RewardsPage() {
         const fetchedTransactions = await getRewardTransactions(fetchedUser.id);
         setTransactions(fetchedTransactions as Transaction[]);
         const fetchedRewards = await getAvailableRewards(fetchedUser.id);
-        setRewards(fetchedRewards.filter((r) => r.cost > 0)); // Filter out rewards with 0 points
+        setRewards(
+          fetchedRewards
+            .map((r) => ({
+              ...r,
+              cost: "points" in r ? r.points : r.cost,
+              collectionInfo: r.verifyInfo || "",
+            }))
+            .filter((r) => r.cost > 0)
+        ); // Ensure all rewards have cost and collectionInfo
 
         // Recalculate balance
         const calculatedBalance = fetchedTransactions.reduce(
