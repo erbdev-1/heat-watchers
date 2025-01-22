@@ -14,29 +14,49 @@ import {
   getUserByEmail,
   getWeather,
 } from "@/utils/db/actions";
+import Image from "next/image";
 
-const geminiApiKey = process.env.GEMINI_API_KEY as any;
-const googleMapsApiKey = process.env.GOOGLE_MAPS_API_KEY as any;
+const geminiApiKey = process.env.GEMINI_API_KEY as string;
+const googleMapsApiKey = process.env.GOOGLE_MAPS_API_KEY as string;
 
 const libraries: Libraries = ["places"];
 
+type Report = {
+  id: number;
+  location: string;
+  objectType: string;
+  temperature: number;
+  weather: number;
+  status: string;
+  created_at: string;
+};
+
+type VerificationResult = {
+  temperatureType: string;
+  expectedTemperatureRange: string;
+  confidence: number;
+  isWithinRange: boolean;
+  objectTypeMatch: boolean;
+};
+
+type NewReport = {
+  location: string;
+  objectType: string;
+  temperature: number;
+  weather: number;
+};
+
 export default function ReportPage() {
-  const [user, setUser] = useState("") as any;
+  const [user, setUser] = useState<{
+    id: number;
+    email: string;
+    name: string;
+  } | null>(null);
   const router = useRouter();
 
-  const [reports, setReports] = useState<
-    Array<{
-      id: number;
-      location: string;
-      objectType: string;
-      temperature: number;
-      weather: number;
-      status: string;
-      created_at: string;
-    }>
-  >([]);
+  const [reports, setReports] = useState<Report[]>([]);
 
-  const [newReport, setNewReport] = useState({
+  const [newReport, setNewReport] = useState<NewReport>({
     location: "",
     objectType: "",
     temperature: 0,
@@ -50,13 +70,8 @@ export default function ReportPage() {
     "idle" | "verifying" | "success" | "failure"
   >("idle");
 
-  const [verificationResult, setVerificationResult] = useState<{
-    temperatureType: string;
-    expectedTemperatureRange: string;
-    confidence: number;
-    isWithinRange: boolean;
-    objectTypeMatch: boolean;
-  } | null>(null);
+  const [verificationResult, setVerificationResult] =
+    useState<VerificationResult | null>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -173,7 +188,7 @@ export default function ReportPage() {
     }
   };
 
-  const readFileAsBase64 = (file: File): Promise<string> => {
+  const _readFileAsBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result as string);
@@ -264,7 +279,7 @@ export default function ReportPage() {
         const [minTemp, maxTemp] = parsedResult.expectedTemperatureRange
           .replace("°C", "")
           .split(" - ") // Değişiklik burada
-          .map((temp: any) => parseFloat(temp.trim()));
+          .map((temp) => parseFloat(temp.trim()));
 
         const userTemperature = newReport.temperature; // Ensure numeric comparison
 
@@ -279,7 +294,7 @@ export default function ReportPage() {
           : parsedResult.confidence * 0.5;
 
         // Determine final status
-        const isSuccess =
+        const _isSuccess =
           isWithinRange && confidenceAdjustment >= 0.8 && objectTypeMatch;
 
         setVerificationResult({
@@ -419,10 +434,14 @@ export default function ReportPage() {
 
         // Son raporları getir ve formatla
         const recentReports = await getRecentReports();
-        const formattedReports = recentReports?.map((report: any) => ({
-          ...report,
-          objectType: report.materialType,
-          created_at: new Date(report.created_at).toISOString().split("T")[0],
+        const formattedReports: Report[] = recentReports?.map((report) => ({
+          id: report.id,
+          location: report.location,
+          objectType: report.materialType, // `materialType` -> `objectType` olarak eşleştiriliyor
+          temperature: report.temperature,
+          weather: typeof report.weather === "number" ? report.weather : 0, // `unknown` türü için güvenli dönüşüm
+          status: report.status,
+          created_at: new Date(report.created_at).toISOString().split("T")[0], // ISO tarih formatı
         }));
 
         setReports(formattedReports || []);
@@ -481,7 +500,7 @@ export default function ReportPage() {
 
         {preview && (
           <div className="mt-4 mb-8">
-            <img
+            <Image
               src={preview}
               alt="Temperature preview"
               className="max-w-full h-auto rounded-xl shadow-md"

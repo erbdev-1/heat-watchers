@@ -1,3 +1,4 @@
+//@ts-check
 "use client";
 
 import { useState, useEffect } from "react";
@@ -31,10 +32,16 @@ export default function RootLayout({
         if (userEmail) {
           const user = await getUserByEmail(userEmail);
           if (user) {
-            const availableRewards = (await getAvailableRewards(
-              user.id
-            )) as any;
-            setTotalEarnings(availableRewards);
+            const availableRewards = await getAvailableRewards(user.id);
+            // Toplam kazançları hesapla
+            const totalPoints = availableRewards.reduce((total, reward) => {
+              // Eğer 'points' özelliği varsa ekle
+              if ("points" in reward && typeof reward.points === "number") {
+                return total + reward.points;
+              }
+              return total;
+            }, 0);
+            setTotalEarnings(totalPoints);
           }
         }
       } catch (error) {

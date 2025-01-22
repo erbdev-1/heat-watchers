@@ -1,3 +1,4 @@
+//@ts-check
 "use client";
 import { useState, useEffect } from "react";
 import { getAllRewards, getUserByEmail } from "@/utils/db/actions";
@@ -29,7 +30,7 @@ export default function LeaderboardPage() {
         const fetchedRewards = await getAllRewards();
 
         // Format rewards to match the `Reward` type
-        const formattedRewards = fetchedRewards.map((reward: any) => ({
+        const formattedRewards = fetchedRewards.map((reward) => ({
           id: reward.id,
           userId: reward.user_id,
           points: reward.points,

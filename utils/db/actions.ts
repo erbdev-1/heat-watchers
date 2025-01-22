@@ -13,10 +13,12 @@ import toast from "react-hot-toast";
 
 // Define RewardRow interface
 interface RewardRow {
+  id: number;
   user_id: number;
   userName: string | null;
-  total_points: number;
+  points: number;
   level: number;
+  created_at: Date;
 }
 
 // Create a new user in the database with the given email and name
@@ -441,26 +443,51 @@ export async function saveVerifiedReport(
   }
 }
 
-export async function getAllRewards() {
+// Get all rewards for all users
+// export async function getAllRewards(): Promise<RewardRow[]> {
+//   try {
+//     const rewards: RewardRow[] = await db
+//       .select({
+//         user_id: Rewards.user_id,
+//         userName: Users.name,
+//         total_points: sql<number>`SUM(${Rewards.points})`.as("total_points"), // Use alias for sum
+//         level: sql<number>`FLOOR(SUM(${Rewards.points}) / 100)`.as("level"), // Dynamically calculate level
+//       })
+//       .from(Rewards)
+//       .leftJoin(Users, eq(Rewards.user_id, Users.id))
+//       .groupBy(Rewards.user_id, Users.name) // Group by user_id and userName
+//       .orderBy(desc(sql`SUM(${Rewards.points})`)) // Order by total_points
+//       .execute();
+
+//     return rewards;
+//   } catch (error) {
+//     console.error("Error fetching all rewards:", error);
+//     return [];
+//   }
+// }
+export async function getAllRewards(): Promise<RewardRow[]> {
   try {
-    const rewards: RewardRow[] = await db
+    const rewards = await db
       .select({
         user_id: Rewards.user_id,
         userName: Users.name,
-        total_points: sql<number>`SUM(${Rewards.points})`.as("total_points"), // Use alias for sum
-        level: sql<number>`FLOOR(SUM(${Rewards.points}) / 100)`.as("level"), // Dynamically calculate level
+        total_points: sql<number>`SUM(${Rewards.points})`.as("total_points"),
+        level: sql<number>`FLOOR(SUM(${Rewards.points}) / 100)`.as("level"),
       })
       .from(Rewards)
       .leftJoin(Users, eq(Rewards.user_id, Users.id))
-      .groupBy(Rewards.user_id, Users.name) // Group by user_id and userName
-      .orderBy(desc(sql`SUM(${Rewards.points})`)) // Order by total_points
+      .groupBy(Rewards.user_id, Users.name)
+      .orderBy(desc(sql`SUM(${Rewards.points})`))
       .execute();
 
-    return rewards.map((reward) => ({
-      userId: reward.user_id,
+    // Nesneleri RewardRow arayüzüne uygun hale getiriyoruz
+    return rewards.map((reward, index) => ({
+      id: index + 1, // Örnek olarak ID'yi indeks ile atıyoruz
+      user_id: reward.user_id,
       userName: reward.userName || "Unknown User",
-      points: reward.total_points, // Map total_points to points
-      level: reward.level, // Map level
+      points: reward.total_points,
+      level: reward.level,
+      created_at: new Date(), // Örnek olarak şu anki tarihi atıyoruz
     }));
   } catch (error) {
     console.error("Error fetching all rewards:", error);
@@ -497,6 +524,7 @@ export async function getOrCreateReward(user_id: number) {
   }
 }
 
+// Redeem a reward for a given user by deducting the points from their balance
 export async function redeemReward(userId: number, rewardId: number) {
   try {
     const userReward = (await getOrCreateReward(userId)) as any;

@@ -1,21 +1,17 @@
-//@ts-nocheck
-
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+
 import { Button } from "./ui/button";
 import {
   Menu,
   Coins,
-  Leaf,
   Search,
   Bell,
   User,
   ChevronDown,
   LogIn,
-  LogOut,
 } from "lucide-react";
 
 import {
@@ -27,7 +23,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 
 import { Web3Auth } from "@web3auth/modal";
-import { CHAIN_NAMESPACES, IProvider, WEB3AUTH_NETWORK } from "@web3auth/base";
+import { CHAIN_NAMESPACES, IProvider } from "@web3auth/base";
 import { EthereumPrivateKeyProvider } from "@web3auth/ethereum-provider";
 import {
   createUser,
@@ -73,12 +69,30 @@ interface HeaderProps {
   totalEarnings: number;
 }
 
-export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
-  const [provider, setProvider] = useState<IProvider | null>(null);
+type Notification = {
+  id: number;
+  created_at: Date;
+  userId: number;
+  message: string;
+  type: string;
+  isRead: boolean;
+};
+
+type UserInfo = {
+  name: string;
+  email: string;
+  profileImage?: string;
+};
+
+export default function Header({
+  onMenuClick,
+  totalEarnings: _totalEarnings,
+}: HeaderProps) {
+  const [_provider, setProvider] = useState<IProvider | null>(null);
   const [loggedIn, setLoggedIn] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [userInfo, setUserInfo] = useState<any>(null);
-  const pathname = usePathname();
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [balance, setBalance] = useState<number>(0);
   const isMobile = useMediaQuery("(max-width: 768px)");
@@ -93,7 +107,7 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
           console.log("User is already connected");
           setLoggedIn(true);
           const user = await web3Auth.getUserInfo();
-          setUserInfo(user);
+          setUserInfo(user as UserInfo);
           if (user.email) {
             localStorage.setItem("userEmail", user.email);
             await createUser(user.email, user.name || "Anonymous user");
@@ -114,7 +128,7 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
         const user = await getUserByEmail(userInfo.email);
         if (user) {
           const unreadNotifications = await getUnreadNotifications(user.id);
-          setNotifications(unreadNotifications);
+          setNotifications(unreadNotifications || []);
         }
       }
     };
@@ -167,7 +181,7 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
       setProvider(web3authProvider);
       setLoggedIn(true);
       const user = await web3Auth.getUserInfo();
-      setUserInfo(user);
+      setUserInfo(user as UserInfo);
       if (user.email) {
         localStorage.setItem("userEmail", user.email);
         try {
@@ -201,7 +215,7 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
   const getUserInfo = async () => {
     if (web3Auth.connected) {
       const user = await web3Auth.getUserInfo();
-      setUserInfo(user);
+      setUserInfo(user as UserInfo);
 
       if (user.email) {
         localStorage.setItem("userEmail", user.email);
@@ -238,6 +252,7 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
             <Image
               src={kids}
               className="h-6 w-6 md:h-8 md:w-8 text-green-500 mr-1 md:mr-2 rounded-full"
+              alt="HeatWatchers Logo"
             />
             <span className="font-bold text-base md:text-lg text-gray-800">
               HeatWatchers
@@ -275,7 +290,7 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-64">
               {notifications?.length > 0 ? (
-                notifications?.map((notification: any) => (
+                notifications?.map((notification: Notification) => (
                   <DropdownMenuItem
                     key={notification.id}
                     onClick={() => handleNotificationClick(notification.id)}

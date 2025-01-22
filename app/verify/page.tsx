@@ -1,12 +1,10 @@
 "use client";
 import { useState, useEffect } from "react";
 import {
-  Image,
+  ImagePlus,
   MapPin,
   CheckCircle,
   Clock,
-  ArrowRight,
-  Camera,
   Cloud,
   Upload,
   Loader,
@@ -17,25 +15,30 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "react-hot-toast";
+import Image from "next/image";
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import {
   getUserByEmail,
   getVerifyTasks,
-  getWeather,
   saveReward,
   saveVerifiedReport,
   updateTaskStatus,
 } from "@/utils/db/actions";
 
-const geminiApiKey = process.env.GEMINI_API_KEY as any;
+const geminiApiKey = process.env.GEMINI_API_KEY as string;
+
+type Weather = {
+  temperature: number;
+  humidity: number;
+};
 
 type VerifyTask = {
   id: number;
   location: string;
   materialType: string;
   temperature: number;
-  weather: any;
+  weather: Weather;
   status: "pending" | "in_progress" | "completed" | "verified";
   date: string;
   collectorId: number;
@@ -103,7 +106,7 @@ export default function VerifyPage() {
     expectedTemperatureRange: boolean;
     confidence: number;
   } | null>(null);
-  const [reward, setReward] = useState<number | null>(null);
+  const [_reward, setReward] = useState<number | null>(null);
 
   // Handle task verification
 
@@ -151,7 +154,7 @@ export default function VerifyPage() {
 
   // Handle verification using Gemini API
 
-  const readFileAsBase64 = (dataUrl: string): string => {
+  const _readFileAsBase64 = (dataUrl: string): string => {
     return dataUrl.split(",")[1];
   };
 
@@ -305,9 +308,22 @@ export default function VerifyPage() {
                   <StatusBadge status={task.status} />
                 </div>
                 <div className="grid grid-cols-4 gap-2 text-sm text-gray-600 mb-3">
-                  <div className="flex items-center">
-                    <Image className="w-4 h-4 mr-2 text-gray-500" />
-                    {task.materialType}
+                  <div className="flex items-center relative">
+                    <ImagePlus className="w-4 h-4 mr-2 text-gray-500" />
+                    <span
+                      onMouseEnter={() =>
+                        setHoveredMaterialType(task.materialType)
+                      }
+                      onMouseLeave={() => setHoveredMaterialType(null)}
+                      className="cursor-pointer"
+                    >
+                      {task.materialType}
+                    </span>
+                    {hoveredMaterielType === task.materialType && (
+                      <div className="absolute top-full left-0 bg-gray-800 text-white p-2 shadow-lg rounded text-xs">
+                        Material Type: {task.materialType}
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center">
                     <Weight className="w-4 h-4 mr-2 text-gray-500" />
@@ -319,7 +335,7 @@ export default function VerifyPage() {
                   </div>
                   <div className="flex items-center">
                     <Cloud className="w-4 h-4 mr-2 text-gray-500" />
-                    {task.weather}°C
+                    {task.weather.temperature}°C
                   </div>
                 </div>
                 <div className="flex justify-end">
@@ -418,10 +434,12 @@ export default function VerifyPage() {
               </div>
             </div>
             {verificationImage && (
-              <img
+              <Image
                 src={verificationImage}
                 alt="Verification"
                 className="mb-4 rounded-md w-full"
+                width={300}
+                height={300}
               />
             )}
             <Button
@@ -479,7 +497,7 @@ export default function VerifyPage() {
 function StatusBadge({ status }: { status: VerifyTask["status"] }) {
   const statusConfig = {
     pending: { color: "bg-yellow-100 text-yellow-800", icon: Clock },
-    in_progress: { color: "bg-blue-100 text-blue-800", icon: Image },
+    in_progress: { color: "bg-blue-100 text-blue-800", icon: ImagePlus },
     completed: { color: "bg-green-100 text-green-800", icon: CheckCircle },
     verified: { color: "bg-purple-100 text-purple-800", icon: CheckCircle },
   };
