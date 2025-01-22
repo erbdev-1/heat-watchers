@@ -52,10 +52,13 @@ if (!clientId) {
 // Configuration settings for the Ethereum Sepolia Testnet chain
 const chainConfig = {
   chainNamespace: CHAIN_NAMESPACES.EIP155,
-  chainId: "0x5aff", // Sapphire Testnet chain ID
-  rpcTarget: "https://testnet.sapphire.oasis.io", // Testnet RPC
+  chainId: process.env.NEXT_PUBLIC_CHAIN_ID || "0x5aff", // Sapphire Testnet chain ID
+  rpcTarget:
+    process.env.NEXT_PUBLIC_RPC_TARGET || "https://testnet.sapphire.oasis.io", // Testnet RPC
   displayName: "Oasis Sapphire Testnet",
-  blockExplorerURL: "https://explorer.oasis.io/testnet/sapphire",
+  blockExplorerURL:
+    process.env.NEXT_PUBLIC_BLOCK_EXPLORER_URL ||
+    "https://explorer.oasis.io/testnet/sapphire",
   ticker: "ROSE",
   tickerName: "Oasis Rose",
 };
