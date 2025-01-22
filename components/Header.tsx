@@ -40,8 +40,14 @@ import toast from "react-hot-toast";
 
 //import {useMediaQuery} from '@'
 
-const clientId =
-  "BLXJBM1L69isEbTBR_KfT7Kvi_0dfSwdd8e4oytosqQkEdeC-A2hX3LN9mfrb7EXQ2U3W92fhsiFNf6NLXsVZIU";
+const clientId = process.env.NEXT_PUBLIC_WEB3AUTH_CLIENT_ID;
+
+if (!clientId) {
+  console.error("NEXT_PUBLIC_WEB3AUTH_CLIENT_ID is not defined.");
+  throw new Error(
+    "NEXT_PUBLIC_WEB3AUTH_CLIENT_ID is not defined in environment variables."
+  );
+}
 
 // Configuration settings for the Ethereum Sepolia Testnet chain
 const chainConfig = {
