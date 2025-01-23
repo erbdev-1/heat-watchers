@@ -106,16 +106,25 @@ export default function Home() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-16">
-      <section className="text-center  mb-20">
-        <AnimatedGlobe />
+    <div className="container mx-auto px-4 py-16 -mt-16">
+      <section className="text-center  mb-18">
+        <p className="text-2xl font-bold text-gray-900 mt-7 ">
+          <span className="text-lime-500">"Don’t just be a spectator.</span>
+          Take action with{" "}
+          <span className="text-orange-500">HeatWatchers"</span>.
+        </p>
+        <div className="mt-8">
+          <AnimatedGlobe />
+        </div>
         <h1 className="text-6xl font-bold mb-6 text-gray-800 tracking-tight">
           Heat-Watchers
           <span className="text-green-600">Community Engagement</span>
         </h1>
         <p className="text-xl text-gray-600 max-x-2xl mx-auto leading-relaxed mb-8 ">
-          Join our community in raising awareness about rising temperatures in a
-          more rewarding and impactful way.
+          HeatWatchers is not just a platform; it’s a movement. Every report
+          ignites a spark of awareness. Every verification is an investment in
+          the future of our planet. In this project, everyone can be a hero and
+          become part of big changes through small actions.
         </p>
 
         {loggedIn ? (
