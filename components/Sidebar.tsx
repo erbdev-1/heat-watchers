@@ -53,10 +53,36 @@ export default function Sidebar({ open }: SidebarProps) {
         </div>
 
         <div className="p-4 border-t border-gray-200">
+          {/* Project Contributors */}
+          <div className="mb-4 px-4 py-4 border-b border-gray-500 bg-gray-50 shadow-sm rounded-md">
+            <h4 className="text-lg font-bold text-gray-500 text-center">
+              Project Contributors
+            </h4>
+            <div className="flex flex-col items-start space-y-2 mt-2">
+              <div className="flex items-center w-full">
+                <User className="h-5 w-5 text-green-600 mr-3" />
+                <span className="text-gray-700 text-sm font-medium">
+                  Liliia Hebrin-Baidy
+                </span>
+              </div>
+              <div className="flex items-center w-full">
+                <User className="h-5 w-5 text-green-600 mr-3" />
+                <span className="text-gray-700 text-sm font-medium">
+                  Sophie Weeks
+                </span>
+              </div>
+              <div className="flex items-center w-full">
+                <User className="h-5 w-5 text-green-600 mr-3" />
+                <span className="text-gray-700 text-sm font-medium">
+                  Gareth Rees
+                </span>
+              </div>
+            </div>
+          </div>
           {/* Created By Section */}
           <div className="px-4 py-4 border-b border-gray-300 bg-gray-50 shadow-sm rounded-md">
             <div className="flex items-center justify-center">
-              <User className="h-5 w-5 text-gray-800 mr-2" />
+              <User className="h-5 w-5  text-green-600 mr-2" />
               <span className="text-gray-800 text-sm font-medium text-center">
                 Created by: Erhan Baydi
               </span>
