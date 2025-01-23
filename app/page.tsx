@@ -113,7 +113,7 @@ export default function Home() {
             &quot; Don&apos;t just be a spectator.
           </span>
           Take action with
-          <span className="text-orange-500">HeatWatchers &quot;</span>.
+          <span className="text-orange-500"> HeatWatchers &quot;</span>.
         </p>
         <div className="mt-8">
           <AnimatedGlobe />
@@ -136,7 +136,7 @@ export default function Home() {
           </Button>
         ) : (
           <Link href="/report">
-            <Button className="bg-green-600 hover:bg-green-700 text-white text-lg py-6 px-10 rounded-full font-medium transition-all duration-300 ease-in-out transform hover:scale-105">
+            <Button className="bg-green-600 hover:bg-green-700 text-white text-lg mb-6 py-6 px-10 rounded-full font-medium transition-all duration-300 ease-in-out transform hover:scale-105">
               Report Temperature
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
@@ -144,7 +144,7 @@ export default function Home() {
         )}
       </section>
 
-      <section className="grid grid-cols-3 gap-10 mb-20">
+      {/* <section className="grid grid-cols-3 gap-10 mb-20">
         <FeatureCard
           icon={Leaf}
           title="Eco-Friendly"
@@ -160,7 +160,48 @@ export default function Home() {
           title="Community Driven"
           description="Join a community of like-minded individuals who are passionate about the environment."
         />
+      </section> */}
+      <section className="grid grid-cols-3 gap-10 mb-20">
+        <FeatureCard
+          icon={Leaf}
+          title="Observe Nature, Report, Contribute"
+          description={
+            <ul className="list-disc list-inside text-left">
+              <li>
+                Observe materials around you: a leaf, a rock, a flower or ...
+              </li>
+              <li>Measure their temperature and report it to HeatWatchers.</li>
+              <li>
+                With every report, you contribute to mapping the impact of
+                climate change.
+              </li>
+            </ul>
+          }
+        />
+        <FeatureCard
+          icon={Coins}
+          title=" Be Part of the Community"
+          description={
+            <ul className="list-disc list-inside  text-left">
+              <li>Verify other users&apos; reports with AI-powered tools.</li>
+              <li>Become part of a scientific process.</li>
+              <li>Show solidarity with the community.</li>
+            </ul>
+          }
+        />
+        <FeatureCard
+          icon={Users}
+          title="Contribute and Earn Rewards"
+          description={
+            <ul className="list-disc list-inside  text-left">
+              <li>Earn reward points for every report and verification.</li>
+              <li>Use these points to claim rewards.</li>
+              <li>Support environmental projects with your contributions.</li>
+            </ul>
+          }
+        />
       </section>
+
       <section className="bg-white p-10 rounded-3xl shadow-lg mb-20">
         <h2 className="text-4xl font-bold mb-12 text-center text-gray-800">
           Our Impact
@@ -221,7 +262,7 @@ function FeatureCard({
 }: {
   icon: React.ElementType;
   title: string;
-  description: string;
+  description: React.ReactNode;
 }) {
   return (
     <div className="bg-white p-8 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 ease-in-out flex flex-col items-center text-center">
