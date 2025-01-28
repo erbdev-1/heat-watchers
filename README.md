@@ -1,6 +1,5 @@
 
 1. **HeatWatchers**
-   - Provide the name of the project.
 
 2. **Project Description**
    - **Overview:** A brief summary of what the project does.
@@ -12,7 +11,11 @@
 
 4. **Technologies Used**
    - **Programming Languages:**
-     - List all programming languages used in the project (e.g., JavaScript, Python).
+    The programming languages used in this project are:
+* TypeScript
+* JavaScript
+* SQL
+These languages are evident from the file extensions and the code content in the repository. For example, files like `app/layout.tsx` and `app/leaderboard/page.tsx` are written in TypeScript, while SQL is used in the database schema and actions.
    - **Frontend Frameworks/Libraries:**
      - Specify frontend frameworks or libraries (e.g., React, Angular, Vue.js).
    - **Backend Languages/Frameworks:**
