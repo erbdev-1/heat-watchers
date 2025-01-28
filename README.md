@@ -1,4 +1,24 @@
-1. **Project Title**
+# HeatWatchers
+
+## Project Description
+### Overview
+The project "Heat Watchers" is an AI-powered platform for tracking climate change through community engagement and temperature reporting.
+### Main Goals
+Raise awareness about climate change, encourage community participation, and provide rewards for contributions.
+### Key Features
+- app/layout.tsx: Defines the main layout of the application, including the header and sidebar.
+- app/leaderboard/page.tsx: Implements the leaderboard page.
+- app/page.tsx: Implements the home page with features like reporting temperature and viewing impact data.
+- app/report/page.tsx: Implements the temperature reporting page.
+- app/rewards/page.tsx: Implements the rewards page.
+- app/verify/page.tsx: Implements the verification tasks page.
+- components/Header.tsx: Defines the header component with user authentication and notifications.
+- components/Sidebar.tsx: Defines the sidebar component with navigation links.
+- utils/db/actions.ts: Contains database actions for managing users, reports, rewards, and notifications.
+- utils/db/schema.ts: Defines the database schema for users, reports, rewards, and notifications.
+
+
+
 
 ## Getting Started
 
